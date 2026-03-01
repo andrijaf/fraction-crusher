@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>FRACTION CRUSHER</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --np:#FF2D6B;--nc:#00F0FF;--ng:#39FF14;--nv:#BF00FF;
+  --ny:#FFE600;--no:#FF6A00;--nb:#4D4DFF;--nr:#FF003C;
+  --bg:#000;--card:#0A0A12;--text:#E0E6F0;--dim:#4A5068;--bdr:#1A1A2E;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;touch-action:manipulation}
+
+/* ============ SHELL: fixed full viewport ============ */
+.app{
+  position:relative;z-index:2;
+  width:100%;max-width:600px;margin:0 auto;
+  height:100dvh;height:100vh;
+  display:flex;flex-direction:column;
+  padding:max(4px,env(safe-area-inset-top)) 8px max(6px,env(safe-area-inset-bottom));
+}
+/* ambient glow */
+.app::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 15% 10%,rgba(255,45,107,.06) 0%,transparent 50%),radial-gradient(ellipse at 85% 90%,rgba(0,240,255,.05) 0%,transparent 50%)}
+
+/* ============ TITLE: big label on top ============ */
+.title{
+  flex:0 0 auto;text-align:center;
+  font-family:'Orbitron',sans-serif;font-size:clamp(1.1em,4.5vw,1.6em);font-weight:900;
+  letter-spacing:clamp(3px,1vw,6px);color:var(--nc);
+  text-shadow:0 0 8px rgba(0,240,255,.6),0 0 25px rgba(0,240,255,.2);
+  padding:4px 0 4px;
+  text-transform:uppercase;
+}
+
+/* ============ STATS + TOOLS: one row, all same height ============ */
+.top{display:flex;align-items:stretch;gap:4px;padding:0 0 4px;flex:0 0 auto}
+.st{flex:1;
+  font-family:'Share Tech Mono',monospace;font-size:clamp(1em,3.5vw,1.3em);color:var(--dim);
+  border:1px solid rgba(0,240,255,.2);border-radius:3px;background:rgba(0,0,0,.3);
+  display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;
+  padding:7px 8px;letter-spacing:1px}
+.st .v{color:var(--nc);font-weight:700;font-size:1.2em}
+.tb{width:auto;aspect-ratio:1;border:1px solid rgba(0,240,255,.2);background:rgba(10,10,18,.8);
+  border-radius:3px;color:var(--nc);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 10px;transition:all .2s}
+.tb.on,.tb:active{background:rgba(0,240,255,.12);border-color:var(--nc);box-shadow:0 0 6px rgba(0,240,255,.3)}
+.tb svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ============ MODE TABS: 1 scrollable row ============ */
+.modes{display:flex;gap:4px;padding:0 0 5px;flex:0 0 auto}
+.modes::-webkit-scrollbar{display:none}
+.mb{flex:1;border:1px solid var(--bdr);background:0;color:var(--dim);padding:8px 4px;border-radius:3px;
+  font-family:'Share Tech Mono',monospace;font-size:clamp(.65em,2.2vw,.8em);letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;text-align:center;white-space:nowrap;transition:all .2s}
+.mb:active{border-color:var(--np);color:var(--np)}
+.mb.on{background:var(--np);border-color:var(--np);color:#000;font-weight:700;box-shadow:0 0 8px rgba(255,45,107,.35)}
+
+/* ============ MAIN AREA: flex column, mid grows to fill ============ */
+.main{flex:1;min-height:0;
+  background:var(--card);border:1px solid rgba(0,240,255,.1);border-radius:4px;
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
+  padding:6px 10px 4px;
+}
+.main::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--np),var(--nc),var(--nv),var(--ng));box-shadow:0 0 6px rgba(0,240,255,.3)}
+
+/* Question expression — big */
+.qbox{text-align:center;flex:0 0 auto;padding:clamp(12px,3vh,28px) 0 0}
+.ql{font-family:'Share Tech Mono',monospace;font-size:.65em;color:var(--nv);text-transform:uppercase;letter-spacing:2px}
+.qe{font-family:'Orbitron',sans-serif;font-size:clamp(2.2em,9vw,3.4em);font-weight:700;margin-top:4px}
+.qe .op{color:var(--np);margin:0 5px;text-shadow:0 0 6px rgba(255,45,107,.4)}
+.qe .eq{color:var(--nc);margin:0 5px;text-shadow:0 0 6px rgba(0,240,255,.4)}
+.qe .hl{color:var(--ny);text-shadow:0 0 6px rgba(255,230,0,.3)}
+/* Feedback text */
+.fbt{font-family:'Orbitron',sans-serif;font-size:clamp(.85em,3vw,1.1em);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:4px;display:none}
+.fbt.ok{display:block;color:var(--ng);text-shadow:0 0 8px rgba(57,255,20,.4)}
+.fbt.no{display:block;color:var(--nr);text-shadow:0 0 8px rgba(255,0,60,.4)}
+
+/* Circles zone — GROWS to fill all remaining card space */
+.mid{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px 0}
+
+.va{display:flex;justify-content:center;align-items:center;gap:clamp(6px,2vw,16px)}
+.vg{display:flex;flex-direction:column;align-items:center;gap:3px}
+.vg .lb{font-family:'Orbitron',sans-serif;font-weight:700;font-size:clamp(.75em,2.8vw,1em);color:var(--nc);text-shadow:0 0 4px rgba(0,240,255,.3)}
+/* circle size set by JS — these are fallbacks */
+.cw{width:140px;height:140px;flex-shrink:0}
+.cw svg{width:100%;height:100%;filter:drop-shadow(0 0 4px rgba(0,240,255,.08))}
+.ops{font-family:'Orbitron',sans-serif;font-size:clamp(1.2em,4.5vw,2.2em);font-weight:700;color:var(--np);text-shadow:0 0 8px rgba(255,45,107,.4);align-self:center;flex-shrink:0}
+.eqs{font-family:'Orbitron',sans-serif;font-size:clamp(1.2em,4.5vw,2.2em);font-weight:700;color:var(--nc);text-shadow:0 0 8px rgba(0,240,255,.4);align-self:center;flex-shrink:0}
+.rcw .lb{color:var(--ny)!important;text-shadow:0 0 4px rgba(255,230,0,.4)!important}
+/* Simplify: big fraction prompt */
+.ncm{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ncm .bf{font-family:'Orbitron',sans-serif;font-weight:800;color:var(--ny);text-shadow:0 0 14px rgba(255,230,0,.3)}
+.ncm .ht{font-family:'Share Tech Mono',monospace;font-size:.7em;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+/* Reveal circles */
+.rva{display:flex;justify-content:center;align-items:center;gap:clamp(6px,2vw,12px)}
+.rva .cw{flex-shrink:0}
+.rvh{font-family:'Share Tech Mono',monospace;font-size:.6em;color:var(--dim);text-align:center;letter-spacing:1px;margin-top:3px}
+
+/* Steps — bottom of card, auto height */
+.stzone{flex:0 0 auto;padding:4px 0 0;display:none}
+.stzone.show{display:block}
+.sb{background:rgba(0,0,0,.4);border:1px solid rgba(0,240,255,.08);border-left:2px solid var(--ng);
+  border-radius:2px;padding:6px 8px;width:100%}
+.sb h3{font-family:'Share Tech Mono',monospace;font-size:.55em;text-transform:uppercase;letter-spacing:2px;color:var(--ng);margin-bottom:3px}
+.sl{font-family:'Share Tech Mono',monospace;font-size:clamp(.62em,2vw,.78em);line-height:1.6;color:var(--text)}
+.sl .hl{color:var(--nc);font-weight:700}
+.sl .hl2{color:var(--ng);font-weight:700}
+.sl .dim{color:var(--dim)}
+
+/* ============ BOTTOM: choices or next — always visible ============ */
+.bot{flex:0 0 auto;padding:4px 0 2px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ch{
+  border:1px solid var(--bdr);background:rgba(0,0,0,.35);border-radius:4px;
+  padding:clamp(10px,2.5vh,18px) 6px;
+  font-family:'Orbitron',sans-serif;font-size:clamp(.95em,3.5vw,1.3em);font-weight:700;
+  color:var(--text);cursor:pointer;text-align:center;transition:all .15s;position:relative;overflow:hidden}
+.ch::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(0,240,255,.02));pointer-events:none}
+.ch:active{border-color:var(--nc);background:rgba(0,240,255,.04)}
+.ch.ok{border-color:var(--ng);background:rgba(57,255,20,.07);box-shadow:0 0 8px rgba(57,255,20,.25);color:var(--ng);animation:pop .3s}
+.ch.no{border-color:var(--nr);background:rgba(255,0,60,.07);box-shadow:0 0 8px rgba(255,0,60,.25);color:var(--nr);animation:shake .3s}
+
+.nb{display:none;width:100%;border:2px solid var(--nc);background:rgba(0,240,255,.06);color:var(--nc);
+  padding:clamp(12px,3vh,20px);border-radius:4px;
+  font-family:'Orbitron',sans-serif;font-weight:800;font-size:clamp(.85em,3vw,1.1em);
+  letter-spacing:4px;text-transform:uppercase;cursor:pointer;
+  text-shadow:0 0 4px rgba(0,240,255,.3);transition:all .15s}
+.nb.show{display:block}
+.nb:active{background:var(--nc);color:#000;box-shadow:0 0 10px rgba(0,240,255,.4)}
+
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:99}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes screenShake{
+  0%{transform:translate(0,0) rotate(0)}
+  10%{transform:translate(-6px,4px) rotate(-.5deg)}
+  20%{transform:translate(5px,-3px) rotate(.4deg)}
+  30%{transform:translate(-7px,-2px) rotate(-.3deg)}
+  40%{transform:translate(4px,5px) rotate(.5deg)}
+  50%{transform:translate(-3px,-4px) rotate(-.2deg)}
+  60%{transform:translate(6px,2px) rotate(.3deg)}
+  70%{transform:translate(-4px,3px) rotate(-.4deg)}
+  80%{transform:translate(3px,-2px) rotate(.2deg)}
+  90%{transform:translate(-2px,1px) rotate(-.1deg)}
+  100%{transform:translate(0,0) rotate(0)}
+}
+.app.crush{animation:screenShake .45s ease-out}
+#flash{position:fixed;inset:0;pointer-events:none;z-index:98;opacity:0;transition:opacity .15s}
+#flash.go{opacity:1;background:radial-gradient(circle at center,rgba(57,255,20,.15),transparent 70%);transition:none}
+#flash.miss{opacity:1;background:radial-gradient(circle at center,rgba(255,0,60,.12),transparent 70%);transition:none}
+
+/* ============ DESKTOP ============ */
+@media(min-width:700px){
+  .app{max-width:650px;padding:12px 16px}
+  .title{font-size:1.5em;letter-spacing:6px}
+  .st{font-size:.75em;padding:4px 12px}
+  .mb{font-size:.75em;padding:8px 6px}
+  .qe{font-size:2.2em}
+  .ops,.eqs{font-size:2em}
+  .ch{font-size:1.2em;padding:16px}
+}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div id="flash"></div>
+<div class="app">
+
+  <!-- TITLE -->
+  <div class="title">FRACTION CRUSHER</div>
+
+  <!-- STATS + TOOLS ROW -->
+  <div class="top">
+    <div class="st">XP<span class="v" id="score">0</span></div>
+    <div class="st">×<span class="v" id="streak">0</span></div>
+    <div class="st">T<span class="v" id="level">1</span></div>
+    <button class="tb" id="wakeBtn" onclick="toggleWake()" title="Screen on">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+    <button class="tb" id="fsBtn" onclick="toggleFS()" title="Fullscreen">
+      <svg viewBox="0 0 24 24" id="fsIco"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    </button>
+  </div>
+
+  <!-- MODE TABS -->
+  <div class="modes">
+    <button class="mb on" data-m="add_same">SAME</button>
+    <button class="mb" data-m="add_diff">UNLIKE</button>
+    <button class="mb" data-m="add_hard">HARD</button>
+    <button class="mb" data-m="simplify">SIMPLIFY</button>
+    <button class="mb" data-m="mixed">MIXED</button>
+  </div>
+
+  <!-- MAIN AREA: 3-zone grid -->
+  <div class="main">
+    <!-- ZONE 1: Question + feedback text (top of card) -->
+    <div class="qbox">
+      <div class="ql" id="qLabel"></div>
+      <div class="qe" id="qExpr"></div>
+      <div class="fbt" id="fbText"></div>
+    </div>
+
+    <!-- ZONE 2: Circles (always centered) -->
+    <div class="mid">
+      <div class="va" id="visArea"></div>
+    </div>
+
+    <!-- ZONE 3: Steps (bottom of card, hidden until answered) -->
+    <div class="stzone" id="stZone">
+      <div class="sb"><h3>// solution</h3><div id="stepsContent"></div></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: choices / next -->
+  <div class="bot">
+    <div class="choices" id="choices"></div>
+    <button class="nb" id="nextBtn" onclick="nextQ()">NEXT →</button>
+  </div>
+
+</div>
+<script>
+// ====== STATE ======
+let S={mode:'add_same',score:0,streak:0,level:1,answered:false};
+
+// ====== MATH ======
+function gcd(a,b){return b?gcd(b,a%b):a}
+function lcm(a,b){return a/gcd(a,b)*b}
+function simp(n,d){if(!n)return[0,1];const s=n<0?-1:1;n=Math.abs(n);const g=gcd(n,d);return[s*n/g,d/g]}
+function fs(n,d){const[a,b]=simp(n,d);return b===1?`${a}`:`${a}/${b}`}
+function ri(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuf(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+const D1=[6,8,9,10,12,14,15],D2=[8,9,10,12,14,15,16,18,20,21],D3=[12,15,16,18,20,21,24,25,28,30,36];
+function getD(){return S.level<=2?D1:S.level<=4?D2:D3}
+
+// ====== SVG CIRCLES ======
+const PAL=[['#FF2D6B','#FF5C8D'],['#00F0FF','#44F6FF'],['#BF00FF','#D24DFF'],['#39FF14','#6FFF4F'],['#FFE600','#FFED44'],['#FF6A00','#FF8F3F'],['#4D4DFF','#7A7AFF'],['#FF003C','#FF4D6F']];
+const GC=[['#FF2D6B','#FF5A8A'],['#00F0FF','#55F5FF'],['#39FF14','#6FFF4F'],['#FFE600','#FFED55'],['#BF00FF','#D44DFF'],['#FF6A00','#FF9040'],['#4D4DFF','#7A7AFF'],['#FF003C','#FF4D6F']];
+const EMP='#111122',SLB='#000';
+
+function pie(cx,cy,r,sa,ea,c){
+  if(Math.abs(ea-sa)>=Math.PI*2-.001)return`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${c}"/>`;
+  const x1=cx+r*Math.cos(sa),y1=cy+r*Math.sin(sa),x2=cx+r*Math.cos(ea),y2=cy+r*Math.sin(ea);
+  return`<path d="M${cx},${cy}L${x1},${y1}A${r},${r} 0 ${ea-sa>Math.PI?1:0} 1 ${x2},${y2}Z" fill="${c}"/>`}
+
+function cirSVG(num,den,ci=0,sz=160){
+  const cx=sz/2,cy=sz/2,r=sz/2-4,[mc,lc]=PAL[ci%PAL.length];let s='';
+  for(let i=0;i<den;i++){const a0=-Math.PI/2+(2*Math.PI*i)/den,a1=-Math.PI/2+(2*Math.PI*(i+1))/den;s+=pie(cx,cy,r,a0,a1,EMP)}
+  for(let i=0;i<num&&i<den;i++){const a0=-Math.PI/2+(2*Math.PI*i)/den,a1=-Math.PI/2+(2*Math.PI*(i+1))/den;s+=pie(cx,cy,r,a0,a1,i%2===0?mc:lc)}
+  let ln='';for(let i=0;i<den;i++){const a=-Math.PI/2+(2*Math.PI*i)/den;ln+=`<line x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(a)}" y2="${cy+r*Math.sin(a)}" stroke="${SLB}" stroke-width="2"/>`}
+  return`<svg viewBox="0 0 ${sz} ${sz}" xmlns="http://www.w3.org/2000/svg">${s}${ln}<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${mc}" stroke-width="1.5" opacity=".35"/></svg>`}
+
+function cirGrp(num,den,gs,sz=160){
+  const cx=sz/2,cy=sz/2,r=sz/2-4;let s='';
+  for(let i=0;i<den;i++){const a0=-Math.PI/2+(2*Math.PI*i)/den,a1=-Math.PI/2+(2*Math.PI*(i+1))/den;s+=pie(cx,cy,r,a0,a1,EMP)}
+  for(let i=0;i<num&&i<den;i++){const a0=-Math.PI/2+(2*Math.PI*i)/den,a1=-Math.PI/2+(2*Math.PI*(i+1))/den;const gi=Math.floor(i/gs),[g1,g2]=GC[gi%GC.length];s+=pie(cx,cy,r,a0,a1,(i%gs)%2===0?g1:g2)}
+  let ln='';for(let i=0;i<den;i++){const a=-Math.PI/2+(2*Math.PI*i)/den;ln+=`<line x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(a)}" y2="${cy+r*Math.sin(a)}" stroke="${SLB}" stroke-width="2"/>`}
+  for(let i=0;i<num;i+=gs){const a=-Math.PI/2+(2*Math.PI*i)/den;ln+=`<line x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(a)}" y2="${cy+r*Math.sin(a)}" stroke="rgba(255,255,255,.5)" stroke-width="3"/>`}
+  return`<svg viewBox="0 0 ${sz} ${sz}" xmlns="http://www.w3.org/2000/svg">${s}${ln}<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="2.5"/></svg>`}
+
+function cirSimp(num,den,sz=160){
+  const cx=sz/2,cy=sz/2,r=sz/2-4;let s='';
+  for(let i=0;i<den;i++){const a0=-Math.PI/2+(2*Math.PI*i)/den,a1=-Math.PI/2+(2*Math.PI*(i+1))/den;s+=pie(cx,cy,r,a0,a1,EMP)}
+  for(let i=0;i<num&&i<den;i++){const a0=-Math.PI/2+(2*Math.PI*i)/den,a1=-Math.PI/2+(2*Math.PI*(i+1))/den;s+=pie(cx,cy,r,a0,a1,GC[i%GC.length][0])}
+  let ln='';for(let i=0;i<den;i++){const a=-Math.PI/2+(2*Math.PI*i)/den;ln+=`<line x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(a)}" y2="${cy+r*Math.sin(a)}" stroke="${SLB}" stroke-width="2"/>`}
+  return`<svg viewBox="0 0 ${sz} ${sz}" xmlns="http://www.w3.org/2000/svg">${s}${ln}<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="2.5"/></svg>`}
+
+// ====== WRONG ANSWERS ======
+function genW(ans,ex=[]){
+  let w=new Set([ans,...ex]);const p=ans.includes('/')?ans.split('/').map(Number):[parseInt(ans),1],[sn,sd]=p;
+  if(sd>1){[sn+1,sn-1,sn+2,sn-2].forEach(x=>{if(x>=1&&x<=sd*3)w.add(fs(x,sd))});w.add(fs(sn,sd+1));if(sd-1>0)w.add(fs(sn,sd-1));w.add(fs(sn*2,sd*2))}
+  else{w.add(`${sn+1}`);w.add(`${Math.max(1,sn-1)}`);w.add(fs(sn*2+1,2))}
+  let sf=0;while(w.size<7&&sf<50){sf++;const rd=pick(getD());w.add(fs(ri(1,rd),rd))}
+  w.delete(ans);return shuf([ans,...[...w].slice(0,3)])}
+
+// ====== GENERATORS ======
+function genAddSame(){
+  const d=pick(getD()),n1=ri(Math.max(1,Math.floor(d/4)),d-1),n2=ri(Math.max(1,Math.floor(d/4)),d-1);
+  const rn=n1+n2,rd=d,[sn,sd]=simp(rn,rd),ns=(sn!==rn||sd!==rd),ans=fs(rn,rd);
+  let st=`<div class="sl"><span class="dim">// same denom → add tops</span></div>`;
+  st+=`<div class="sl">${n1}/${d} + ${n2}/${d} = <span class="hl">${rn}/${rd}</span></div>`;
+  if(ns){const g=gcd(rn,rd);st+=`<div class="sl"><span class="dim">GCD(${rn},${rd})=${g}</span> → <span class="hl2">${ans}</span></div>`}
+  return{lbl:'// add :: same_denom',expr:`${n1}/${d} <span class="op">+</span> ${n2}/${d} <span class="eq">=</span> ?`,
+    cir:[{n:n1,d,ci:0},{n:n2,d,ci:1}],ans,st,ch:genW(ans,ns?[`${rn}/${rd}`]:[])}}
+
+function genAddDiff(){
+  const ds=getD();let d1=pick(ds),d2=pick(ds),sf=0;
+  while((d1===d2||lcm(d1,d2)>120)&&sf<100){d2=pick(ds);sf++}
+  if(d1===d2)d2=d1<12?d1+2:d1-2;
+  const n1=ri(1,d1-1),n2=ri(1,d2-1),cd=lcm(d1,d2),m1=cd/d1,m2=cd/d2;
+  const rn=n1*m1+n2*m2,rd=cd,[sn,sd]=simp(rn,rd),ns=(sn!==rn||sd!==rd),ans=fs(rn,rd);
+  let st=`<div class="sl"><span class="dim">LCD(${d1},${d2})=</span><span class="hl">${cd}</span></div>`;
+  st+=`<div class="sl">${n1}/${d1}→<span class="hl">${n1*m1}/${cd}</span> | ${n2}/${d2}→<span class="hl">${n2*m2}/${cd}</span></div>`;
+  st+=`<div class="sl">= <span class="hl">${rn}/${rd}</span></div>`;
+  if(ns){const g=gcd(rn,rd);st+=`<div class="sl"><span class="dim">÷${g}</span> → <span class="hl2">${ans}</span></div>`}
+  return{lbl:'// add :: unlike',expr:`${n1}/${d1} <span class="op">+</span> ${n2}/${d2} <span class="eq">=</span> ?`,
+    cir:[{n:n1,d:d1,ci:0},{n:n2,d:d2,ci:4}],ans,st,ch:genW(ans,[`${rn}/${rd}`,fs(n1+n2,d1+d2)])}}
+
+function genAddHard(){
+  const ds=D3;let d1=pick(ds),d2=pick(ds),sf=0;
+  while((d1===d2||lcm(d1,d2)>150)&&sf<100){d2=pick(ds);sf++}
+  if(d1===d2)d2=d1<20?d1+3:d1-3;
+  const n1=ri(Math.floor(d1/3),d1-1),n2=ri(Math.floor(d2/3),d2-1),cd=lcm(d1,d2),m1=cd/d1,m2=cd/d2;
+  const rn=n1*m1+n2*m2,rd=cd,[sn,sd]=simp(rn,rd),ns=(sn!==rn||sd!==rd),ans=fs(rn,rd);
+  let st=`<div class="sl"><span class="dim">LCD(${d1},${d2})=</span><span class="hl">${cd}</span></div>`;
+  st+=`<div class="sl">${n1}/${d1}→<span class="hl">${n1*m1}/${cd}</span> | ${n2}/${d2}→<span class="hl">${n2*m2}/${cd}</span></div>`;
+  st+=`<div class="sl">= <span class="hl">${rn}/${rd}</span></div>`;
+  if(ns){const g=gcd(rn,rd);st+=`<div class="sl"><span class="dim">÷${g}</span> → <span class="hl2">${ans}</span></div>`}
+  return{lbl:'// add :: hard',expr:`${n1}/${d1} <span class="op">+</span> ${n2}/${d2} <span class="eq">=</span> ?`,
+    cir:[{n:n1,d:d1,ci:2},{n:n2,d:d2,ci:7}],ans,st,ch:genW(ans,[`${rn}/${rd}`,fs(n1+n2,d1+d2)])}}
+
+function genSimplify(){
+  const tg=[[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5],[4,5],[1,6],[5,6],[2,7],[3,7],[3,8],[5,8],[7,8],[1,9],[4,9],[7,9],[3,10],[7,10],[9,10],[5,12],[7,12],[11,12],[2,15],[7,15],[11,15]];
+  const[tn,td]=pick(tg),mult=ri(2,Math.min(6,Math.floor(48/td))),n=tn*mult,d=td*mult,ans=fs(n,d),g=gcd(n,d);
+  let st=`<div class="sl"><span class="dim">GCD(${n},${d})=</span><span class="hl">${g}</span></div>`;
+  st+=`<div class="sl">${n}÷${g}=${tn} | ${d}÷${g}=${td}</div>`;
+  st+=`<div class="sl"><span class="hl2">${n}/${d} = ${tn}/${td}</span></div>`;
+  let wr=new Set([ans,`${n}/${d}`]);
+  if(tn+1<=td)wr.add(fs(tn+1,td));if(tn-1>=1)wr.add(fs(tn-1,td));wr.add(fs(tn,td+1));
+  const eD=[2,3,4,5,6,7,8,9,10,12,15];let sf=0;while(wr.size<6&&sf<50){sf++;wr.add(fs(ri(1,pick(eD)),pick(eD)))}wr.delete(ans);
+  return{lbl:'// simplify',expr:`<span class="hl">${n}/${d}</span> <span class="eq">=</span> ?`,
+    cir:[],hide:true,rev:{on:n,od:d,sn:tn,sd:td,mult},
+    ans,st,ch:shuf([ans,...[...wr].slice(0,3)])}}
+
+function genMixed(){return pick([genAddSame,genAddDiff,genAddHard,genSimplify])()}
+
+// ====== DYNAMIC CIRCLE SIZING — fill available space ======
+function sizeCircles(){
+  const mid=document.querySelector('.mid');
+  if(!mid)return;
+  const rect=mid.getBoundingClientRect();
+  const aw=rect.width, ah=rect.height;
+  const circles=mid.querySelectorAll('.cw');
+  const nCircles=circles.length;
+  if(!nCircles)return;
+
+  // Check if it's a simplify prompt (single big fraction, no circles)
+  const ncm=mid.querySelector('.ncm');
+  if(ncm){
+    const bf=ncm.querySelector('.bf');
+    if(bf) bf.style.fontSize=Math.min(aw*0.22, ah*0.35)+'px';
+    return;
+  }
+
+  // Check if it's reveal mode (rva container)
+  const rva=mid.querySelector('.rva');
+  if(rva){
+    const revCircles=rva.querySelectorAll('.cw');
+    const rc=revCircles.length;
+    if(rc){
+      const gapW=rc*12+40; // gaps + equals sign
+      const maxW=(aw-gapW)/rc;
+      const maxH=ah-50; // label + hint
+      const sz=Math.max(60,Math.min(maxW,maxH));
+      revCircles.forEach(c=>{c.style.width=sz+'px';c.style.height=sz+'px'});
+    }
+    return;
+  }
+
+  // Normal mode: 2 circles side by side with + operator
+  const hasOp=!!mid.querySelector('.ops');
+  const opW=hasOp?40:0;
+  const gaps=nCircles*12+opW;
+  const labelH=28; // label above each circle
+  const maxByW=(aw-gaps)/nCircles;
+  const maxByH=ah-labelH-8;
+  const sz=Math.max(80,Math.min(maxByW, maxByH));
+  circles.forEach(c=>{c.style.width=sz+'px';c.style.height=sz+'px'});
+}
+
+// Resize on orientation change or window resize
+window.addEventListener('resize',()=>requestAnimationFrame(sizeCircles));
+
+
+function renderVis(q){
+  const a=document.getElementById('visArea');a.innerHTML='';
+  if(q.hide){
+    a.innerHTML=`<div class="ncm"><div class="ht">// solve mentally</div><div class="bf">${q.rev.on}/${q.rev.od}</div></div>`;
+    requestAnimationFrame(sizeCircles);return}
+  q.cir.forEach((c,i)=>{
+    if(i>0&&q.lbl.includes('add')){const op=document.createElement('div');op.className='ops';op.textContent='+';a.appendChild(op)}
+    const g=document.createElement('div');g.className='vg';
+    const lb=document.createElement('div');lb.className='lb';lb.textContent=`${c.n}/${c.d}`;g.appendChild(lb);
+    const w=document.createElement('div');w.className='cw';
+    w.innerHTML=cirSVG(Math.min(c.n,36),Math.min(c.d,36),c.ci);g.appendChild(w);a.appendChild(g)});
+  requestAnimationFrame(sizeCircles)}
+
+function renderCh(q){
+  const b=document.getElementById('choices');b.innerHTML='';b.style.display='grid';
+  document.getElementById('nextBtn').className='nb';
+  q.ch.forEach(c=>{const btn=document.createElement('button');btn.className='ch';btn.textContent=c;
+    btn.onclick=()=>answer(c,q,btn);b.appendChild(btn)})}
+
+const WM=['CRUSHED','DESTROYED','ANNIHILATED','DOMINATED','OBLITERATED'],LM=['MISS','DEFLECTED','BLOCKED'];
+
+function answer(chosen,q,btn){
+  if(S.answered)return;S.answered=true;
+  const ok=chosen===q.ans,fb=document.getElementById('fbText');
+  if(ok){
+    btn.classList.add('ok');S.score+=10*S.level;S.streak++;
+    if(S.streak%4===0)S.level=Math.min(S.level+1,6);
+    fb.textContent=`>> ${pick(WM)} <<`;fb.className='fbt ok';neonConfetti();
+    // Screen shake
+    const app=document.querySelector('.app');
+    app.classList.remove('crush');void app.offsetWidth;app.classList.add('crush');
+    setTimeout(()=>app.classList.remove('crush'),500);
+    // Neon flash
+    const fl=document.getElementById('flash');
+    fl.classList.add('go');setTimeout(()=>fl.classList.remove('go'),120);
+  }else{
+    btn.classList.add('no');S.streak=0;
+    fb.textContent=`${pick(LM)} → ${q.ans}`;fb.className='fbt no';
+    document.querySelectorAll('.ch').forEach(b=>{if(b.textContent===q.ans)b.classList.add('ok')});
+    const fl2=document.getElementById('flash');
+    fl2.classList.add('miss');setTimeout(()=>fl2.classList.remove('miss'),150)}
+
+  // For simplify: replace circles with grouped reveal
+  if(q.hide&&q.rev){const rv=q.rev,a=document.getElementById('visArea');
+    a.innerHTML=`<div class="rva">
+      <div class="vg"><div class="lb">${rv.on}/${rv.od}</div><div class="cw">${cirGrp(rv.on,rv.od,rv.mult)}</div></div>
+      <div class="eqs">=</div>
+      <div class="vg rcw"><div class="lb">${rv.sn}/${rv.sd}</div><div class="cw">${cirSimp(rv.sn,rv.sd)}</div></div>
+    </div><div class="rvh">each ${rv.mult} slices of /${rv.od} = 1 slice of /${rv.sd}</div>`}
+
+  // Show steps at bottom of card
+  document.getElementById('stepsContent').innerHTML=q.st;
+  document.getElementById('stZone').classList.add('show');
+
+  // Swap bottom: choices → next
+  document.getElementById('choices').style.display='none';
+  document.getElementById('nextBtn').className='nb show';
+  document.getElementById('score').textContent=S.score;
+  document.getElementById('streak').textContent=S.streak;
+  document.getElementById('level').textContent=S.level;
+  requestAnimationFrame(sizeCircles)}
+
+function nextQ(){
+  S.answered=false;
+  const g={add_same:genAddSame,add_diff:genAddDiff,add_hard:genAddHard,simplify:genSimplify,mixed:genMixed};
+  const q=g[S.mode]();
+  document.getElementById('qLabel').textContent=q.lbl;
+  document.getElementById('qExpr').innerHTML=q.expr;
+  // Reset feedback
+  document.getElementById('fbText').className='fbt';document.getElementById('fbText').textContent='';
+  // Reset steps
+  document.getElementById('stZone').classList.remove('show');
+  // Show circles
+  renderVis(q);renderCh(q);
+  requestAnimationFrame(sizeCircles)}
+
+document.querySelectorAll('.mb').forEach(b=>{b.addEventListener('click',()=>{
+  document.querySelectorAll('.mb').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');S.mode=b.dataset.m;nextQ()})});
+
+// ====== CONFETTI ======
+let cRAF=null;
+function neonConfetti(){
+  if(cRAF){cancelAnimationFrame(cRAF);cRAF=null}
+  const c=document.getElementById('confetti'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+  const ps=[],cl=['#FF2D6B','#00F0FF','#39FF14','#BF00FF','#FFE600','#FF6A00'];
+  for(let i=0;i<30;i++)ps.push({x:c.width/2+(Math.random()-.5)*200,y:c.height*.35,vx:(Math.random()-.5)*12,vy:-Math.random()*14-3,sz:Math.random()*5+2,col:pick(cl),rot:Math.random()*360,rs:(Math.random()-.5)*10,life:1});
+  function go(){x.clearRect(0,0,c.width,c.height);let alive=false;
+    for(const p of ps){if(p.life<=0)continue;alive=true;p.x+=p.vx;p.vy+=.45;p.y+=p.vy;p.rot+=p.rs;p.life-=.022;
+      x.save();x.translate(p.x,p.y);x.rotate(p.rot*Math.PI/180);x.globalAlpha=p.life;x.fillStyle=p.col;x.fillRect(-p.sz/2,-p.sz/2,p.sz,p.sz*.5);x.restore()}
+    if(alive){cRAF=requestAnimationFrame(go)}else{x.clearRect(0,0,c.width,c.height);cRAF=null}}
+  cRAF=requestAnimationFrame(go)}
+
+// ====== FULLSCREEN ======
+function toggleFS(){
+  const d=document.documentElement;
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement){(d.requestFullscreen||d.webkitRequestFullscreen).call(d).catch(()=>{})}
+  else{(document.exitFullscreen||document.webkitExitFullscreen).call(document).catch(()=>{})}}
+function updFS(){
+  const f=!!(document.fullscreenElement||document.webkitFullscreenElement);
+  document.getElementById('fsIco').innerHTML=f
+    ?'<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>'
+    :'<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
+  document.getElementById('fsBtn').classList.toggle('on',f)}
+document.addEventListener('fullscreenchange',updFS);
+document.addEventListener('webkitfullscreenchange',updFS);
+
+// ====== WAKE LOCK — auto-on ======
+let wl=null;
+async function acquireWake(){
+  try{if('wakeLock'in navigator&&!wl){wl=await navigator.wakeLock.request('screen');
+    document.getElementById('wakeBtn').classList.add('on');
+    wl.addEventListener('release',()=>{wl=null;document.getElementById('wakeBtn').classList.remove('on')})}}catch(e){}}
+async function toggleWake(){
+  if(wl){await wl.release();wl=null;document.getElementById('wakeBtn').classList.remove('on');return}
+  acquireWake()}
+document.addEventListener('visibilitychange',()=>{if(wl!==null&&document.visibilityState==='visible')acquireWake()});
+
+// ====== AUTO-INIT: fullscreen + wake lock on first tap ======
+document.addEventListener('click',function go(){
+  acquireWake();
+  const d=document.documentElement;
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+    const rq=d.requestFullscreen||d.webkitRequestFullscreen;
+    if(rq)rq.call(d).catch(()=>{})}
+  document.removeEventListener('click',go)},{once:true});
+
+// ====== PWA: register service worker ======
+if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+
+nextQ();
+</script>
+</body>
+</html>
