@@ -2,7 +2,7 @@
   "name": "Fraction Crusher",
   "short_name": "FracCrush",
   "description": "Cyberpunk fraction training app",
-  "start_url": "./fraction-crusher.html",
+  "start_url": "./index.html",
   "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "#000000",
